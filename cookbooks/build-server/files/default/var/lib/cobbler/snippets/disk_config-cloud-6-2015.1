@@ -1,0 +1,56 @@
+
+##
+## Barclays GTIS-ST - this file is under Chef control
+## src: git/hftadmin/chef-repo/cookbooks/build-server/files/default
+##
+
+##
+## script uses the ksmeta variables $system_disk and $data_disk
+##  $system_disk  --  optional string.  default if not defined: format "sda"
+##  $data_disk    --  optional string.  default if not defined: don't format a second disk
+##
+#if $getVar("system_disk","") == ""
+	#set $system_disk = "sda"
+#end if
+#if $getVar("data_disk","") == ""
+	#set $data_disk = ""
+#end if
+
+# System disk: $system_disk
+#if $data_disk
+# Data disk: $data_disk
+#else
+# Data disk: none
+#end if
+
+# System bootloader configuration
+bootloader --location=mbr --md5pass=$default_password_crypted
+
+# Clear the Master Boot Record
+zerombr
+
+# Partition clearing information
+#if $data_disk
+clearpart --drives=$system_disk,$data_disk --all
+#else
+clearpart --drives=$system_disk --all
+#end if
+
+# System disk: partitioning
+part /boot --size=512 --ondrive=$system_disk --asprimary --recommended --fstype=ext3
+part pv.01 --size=65536 --grow --ondrive=$system_disk
+volgroup vg_root pv.01
+
+# System disk: file systems
+logvol / --vgname=vg_root --name=root --size=8192 --fstype=ext4
+logvol /var --vgname=vg_root --name=var --size=8192 --fstype=ext4
+logvol /apps --vgname=vg_root --name=apps --size=8192 --grow --fstype=ext4 --fsoptions=noatime,max_batch_time=0
+logvol swap --vgname=vg_root --name=swap --size=4096
+
+#if $data_disk
+# Data disk: partitioning and file system
+part pv.10 --size=65536 --grow --ondrive=$data_disk
+volgroup vg_data pv.10
+logvol /local/1 --name=local1 --vgname=vg_data --size=32768 --grow --name=local1 --fstype=ext4 --fsoptions=noatime,max_batch_time=0
+#end if
+

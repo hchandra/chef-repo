@@ -1,6 +1,9 @@
 #Vagrant
 .vagrant
 
+#AWS
+.aws
+
 # Chef
 .chef/*
 .chef/*.pem
