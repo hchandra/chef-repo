@@ -1,0 +1,75 @@
+
+##
+## Barclays GTIS-ST - this file is under Chef control
+## src: git/hftadmin/chef-repo/cookbooks/build-server/files/default
+##
+
+##
+## Sets up Chef in %post
+##
+
+# The local time needs to be correct in order to run chef-client, so we need to
+# bootstrap NTP
+cat > /etc/ntp.conf << EOF
+#if $getVar("ntp_server","") != ""
+driftfile /var/lib/ntp/drift
+restrict default nomodify notrap nopeer
+restrict 127.0.0.1
+server $ntp_server iburst minpoll 3 maxpoll 4
+#else
+  #set ntpfile = open('/etc/ntp.conf', 'r')
+  #for $line in $ntpfile
+    #echo $line
+  #end for
+#end if
+EOF
+ntpd -q -g
+hwclock -w
+
+wget -O /etc/yum.repos.d/rhel6-colo.repo "http://$server:$http_port/cobbler/repo_mirror/rhel6-colo/config.repo"
+yum makecache
+yum install -y chef
+
+mkdir /etc/chef
+cat > /etc/chef/validation.pem << EOF
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAlMNtxQqpyb3HOWq4eUCljGtUAfV1tzXOTCxk9AoTtOYYlTWI
+ZR4k3g6TGgto8/gQpgxdgrg29OeFKyHVg/ivYKPHLhDUyfjFwdDOSazQJiSRPZZ5
+t6hvrqEbdNODOAzS/PAEPR+/NjhmH8HDaCNtS207t1Ardelc8VGsGh1AJl1nrNvo
+NcwiTxHSe3tRj/hSihOv2mx2StKO3tqIlPdmrWH6GeEcF8UvYDpuCPV9+KB8BZ1I
+yZrpR7+TdvxMUGeEE+HccUC8bkC05mLaqOP766SDuMwurGgiPa2Ldr07rX6NfYjK
+rRYQxWwtvpK0G/Obt990eSwBpSVXtXzrmRIYjwIDAQABAoIBAGKCf0AJ7aEgQLru
+xrXUb0vrDrg1WPw3byLWCwvnWGFkNUcpKeb77SH2uMZ4Y8marTun2IxlfE70uSR0
+xTUdCtWN3qnMj3wndpz/rnrvKu73LA6ChJtvuHUFTm8wWSZWp6jDL6tiSHaZJldF
+MibVvtxBu1eKiR0NqXRLxxGL6Rz9nuGsDX1gG0SL7ryjg5kl1Ad4yieOSR8SxTXm
+YZ/mJZhwsGN3UR9Fl1pzq5b3ERvsCKL0RwyJrbih9+E5LM0pAMTGM6sJiY71b0K6
+FIvMMcrsLnoF20pGhrE0wJ8DnrXsxaX5ytOMHgi6hConZMv0b1NW7n4jHQGdk0Xz
+DbzjPBECgYEAxFCkTcWYay4FtTtKODnAj46c49DeHMvIpOOr6FwZk/6vJtoGHBAY
+z7TJsWAY26aQ+QIwvHC1TAEQeRKqbMghfibRCTCZbsBdZK1vxiYauLuXZFpwtCuM
+7gDcd2qeUbLTE56jy4STfzEokHgI0StkgWWSbLhr5lARkeimXlVu+FsCgYEAwf3O
+TR54KYpDvrk8Sy2yIhCQwRxM1SEC1WnoHQRzR7yMJa36SMuSPOnGF/h+NEbem0+b
+0mjR0/T8eEuP1b/+3wSt3OJPtpUJNN/PNRXUTr4w6KMyBnKkGku7fUjv16v1Rg/t
+7EMYvrxuq8VkFK7Wje3jc/Syx8OtkDGf5QEvtt0CgYBAmPyHrtZppjowmXLhr3dC
+hb3wZOFBfnjmcRg3HF86SJrf4OwTveQ8LJQVrrZfSJ75oRPiXf/6I3uFK3Qy2WPT
++/fa20gRnnDc2QknnZA7a1b0qaHeV1pHUrc5ADdaUMqN8SyaomRafRWI/EaCdZHb
+1k1pQwIWRhCR/4kHD3u1cwKBgQCYDoOou1tg5DnZw4RZQUZBoU51r+MhpDB+a/c+
+14AtGMOZvVdTvA2ypWNa4rK581sFzk7LjNH8HCnReRkTaN00noxReSsWaJfA1DWs
+3KF/32Ci2Via6T1sRzR9LbCiEu28rzvFV4qL51OwXJboB2ux8Ge7OnDwWJcxUVSN
+wnJOGQKBgQCCY0nnqVPuGq1HR57VcIqWSZkbfHjh0uvO6YtgwoXOnuVYgtjeFEoF
+SDOsp6p6z3Lw6ljJ4J7CD6PYyVzt0YDzH7LNF6yXZC/sT3HyuyRcWYMV2pFphlcp
+2hrAW092bVbbpWScMsdm9YH0ZaIrNIkaomK7y0KQhApAavbzIIc7+Q==
+-----END RSA PRIVATE KEY-----
+EOF
+
+cat > /etc/chef/client.rb << EOF
+log_level        :info
+log_location     STDOUT
+chef_server_url  'https://colochef.barcapint.com/'
+validation_client_name 'chef-validator'
+node_name "$hostname"
+EOF
+
+export BUILD_ENVIRONMENT=1
+chef-client
+
+

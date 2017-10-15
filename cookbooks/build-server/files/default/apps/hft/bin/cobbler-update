@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#
+# Barclays GTIS-ST - this file is under Chef control
+# chef src: git/hftadmin/chef-repo/cookbooks/build-server/files/default
+#
+
+#
+# cobbler-update.sh
+# src: git/hftadmin/colo-tools/build/cobbler/bin
+#
+
+SSH_OPTS="-o NumberOfPasswordPrompts=0 -o CheckHostIP=no -o StrictHostKeyChecking=no"
+
+if [ "$1" == "--all" ]
+then
+  targets=$(knife search -i role:build-server | tail -n +2)
+else
+  targets=$@
+fi
+
+if [ -z "$targets" ]
+then
+  echo "usage: $0 <host>" >&2
+  exit 1
+fi
+
+for target in $targets
+do
+  echo "Updating cobbler content on $target:"
+  echo
+  rsync -e "ssh $SSH_OPTS" -av --delete --exclude iso /local/1/cobbler $target:/local/1 2>/dev/null
+  
+  echo 
+  
+  echo "Updating cobbler config on $target:"
+  echo
+  rsync -e "ssh $SSH_OPTS" -av --delete /var/lib/cobbler $target:/var/lib 2>/dev/null
+
+  echo
+
+  echo "Updating netkit boot images on $target:"
+  echo
+  rsync -e "ssh $SSH_OPTS" -av --delete /apps/tftp/netkit $target:/var/lib/tftpboot 2>/dev/null
+  
+  echo
+  
+  echo "Restarting cobbler on $target:"
+  echo
+  ssh $SSH_OPTS $target service cobblerd restart 2>/dev/null
+  
+  echo
+  
+  echo "Running 'cobbler sync' on $target:"
+  echo
+  ssh $SSH_OPTS $target cobbler sync 2>/dev/null
+done

@@ -1,0 +1,239 @@
+#! /usr/local/bin/ruby
+
+#
+# Barclays Specialized Infrastructure - this file is under Chef control
+# chef src: cookbooks/build-server/files/default
+#
+
+#
+# hftbuild.rb
+# Sets up a new node in Chef and Cobbler for build
+# src: hftadmin/colo-tools/build/cobbler/bin
+#
+
+require 'getoptlong'
+require 'chef/application'
+
+config_base = {
+  system_disk: 'sda',                             # the operating system disk
+  management_interface: 'eth0',                   # the build interface
+  roles: [],                                      # the list of roles
+  routes: [],                                     # the server's static routes
+  use_dhcp: false                                 # should we use DHCP to get our IP information?
+}
+delete_chef_node = true                           # should we delete an existing chef node?
+cobbler_update_args = '--all'                     # args to hand to cobbler-update
+batch_mode = false                                # should be be non-interactive?
+
+
+def exitusage( message = nil )
+  STDERR.puts "\n#{message}" if message
+  STDERR.puts
+  STDERR.puts "  usage: hftbuild [options] <config-file> ..."
+  STDERR.puts
+  STDERR.puts "    Reads in <config-file>'s and sets up a new node in Cobbler and Chef for each."
+  STDERR.puts
+  STDERR.puts "    Options:"
+  STDERR.puts "    --keep-node              If specified, do NOT delete the Chef node, if one exists"
+  STDERR.puts "    --cobbler-update <args>  Call cobbler-update with <args> instead of '--all'"
+  STDERR.puts "    --batch                  If specified, do not wait for confirmation, proceed immediately"
+  STDERR.puts
+  exit 1
+end
+
+# grab options
+GetoptLong.new(
+  [ '--help', '-h', '-?', GetoptLong::NO_ARGUMENT ],
+  [ '--keep-node', GetoptLong::NO_ARGUMENT ],
+  [ '--cobbler-update', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '--batch', GetoptLong::NO_ARGUMENT ]
+).each do |opt, arg|
+  case opt
+    when '--help'
+      exitusage
+    when '--keep-node'
+      delete_chef_node = false
+    when '--cobbler-update'
+      cobbler_update_args = arg
+    when '--batch'
+      batch_mode = true
+  end
+end
+ARGV.empty? and exitusage "You must specify a config file!"
+
+# Bootstrap the Chef environment
+Chef::Config.from_file File.join( ENV['HOME'], '.chef', 'knife.rb' )
+abort "ERROR: Failed to hook into Chef. No user specified. Specifiy 'node_name' in #{chef_config ? chef_config : "~/.chef/knife.rb"}" unless Chef::Config[:node_name]
+
+# yay, parse stuff and create nodes
+ARGV.each do |conf|
+
+  # our config for this node
+  config = config_base.clone
+  config[:roles] = []
+  config[:routes] = []
+  old_names = []                 # list of previous hostnames for this server
+
+  # read in the config file
+  File.readlines(conf).each do |line|
+    next if line.empty? or line =~ /^#/
+    command, arg = line.split(' ', 2).map{ |s| s.strip }
+    arg ||= ""
+    case command
+    when 'role'
+      if arg == ""
+        STDERR.puts "ERROR: 'role' command used with no argument"
+        exit 1
+      elsif arg == 'core' || arg == 'colo'
+        STDERR.puts "ERROR: do not add core/colo to node run lists.  This is pulled in automatically by the site role."
+        exit 1
+      else
+        config[:roles] << "role[#{arg}]"
+      end
+    when 'static_route'
+      config[:routes] << arg
+    when 'build'
+      unless arg =~ /^\d{4}Q\d$/
+        STDERR.puts "ERROR: invalid value for 'build': #{arg}.  Should be something like '2013Q4'"
+        exit 1
+      end
+      config[:build] = arg
+    when 'site_first'
+      STDERR.puts "ERROR: the 'site_first' key no longer does anything and you should remove it from your build config file"
+      exit 1
+    when 'location'
+      STDERR.puts "ERROR: the 'location' key no longer does anything and you should remove it from your build config file"
+      exit 1
+    when 'old_name', 'old_names'
+      old_names += arg.split(/\s+/)
+    else
+      config[command.to_sym] = arg
+    end
+  end
+
+  # sanity checks
+  [ :build, :host, :domain, :site, :owner, :usage, :management_ip, :management_mask, :management_mac, :name_server, :data_disk ].each do |s|
+    unless config[s]
+      STDERR.puts "ERROR: Missing field: #{s}"
+      exit 1
+    end
+  end
+
+  # auto-populate our build role/profile
+  config[:build_role] = "hftbuild-#{config[:build]}-host"
+  config[:profile] = "hftbuild-6-#{config[:build]}"
+
+  # turn fields into role names
+  [ :domain, :site, :usage ].each do |s|
+    if config[s] !~ /^#{s}-/
+      config[s] = "#{s}-#{config[s]}"
+    end
+  end
+  if config[:owner] !~ /^business-/
+    config[:owner] = "business-#{config[:owner]}"
+  end
+
+  # build the run list
+  config[:roles] = [ "role[hftbuild-host]", "role[#{config[:build_role]}]", "role[#{config[:domain]}]", "role[#{config[:site]}]", "role[#{config[:owner]}]", "role[#{config[:usage]}]" ] + config[:roles]
+
+  # print a summary and confirm
+  puts
+  puts "Preparing to create node #{config[:host]} using hftbuild-#{config[:build]}"
+  puts "  old hostname#{old_names.length > 1 ? "s" : ""}: #{old_names.join(', ')}" if old_names.any?
+  puts "  management interface: #{config[:management_interface]} -- #{config[:management_ip]}/#{config[:management_mask]} (#{config[:management_mac]})"
+  puts "    via #{config[:management_gateway]}" if config[:management_gateway]
+  puts "    static routes: #{config[:routes].join(',')}" unless config[:routes].empty?
+  puts "  system disk: #{config[:system_disk]} (any existing data will be deleted!)"
+  puts "  data disk: #{config[:data_disk].empty? ? "(not configuring)" : "#{config[:data_disk]} (any existing data will be deleted!)"}"
+  puts "  dns server: #{config[:name_server]}"
+  puts "  ntp server: #{config[:ntp_server]}" if config[:ntp_server]
+  puts "  owner: #{config[:owner]}"
+  puts "  usage: #{config[:usage]}"
+  puts "  site: #{config[:site]}"
+  puts "  domain: #{config[:domain]}"
+  puts "  roles: #{config[:roles].join(',')}"
+  unless delete_chef_node
+    if system "knife node show #{config[:host]} &>/dev/null"
+      puts "The existing Chef node for #{config[:host]} will not be deleted or changed."
+    else
+      STDERR.puts "ERROR: You specified --keep-node, but no such node #{config[:host]} exists!"
+      exit 1
+    end
+  end
+  puts
+  unless batch_mode
+    puts "Hit control-C to cancel now"
+    puts
+    sleep 5
+  end
+
+  # delete any existing cobbler node
+  unless `cobbler system find --name #{config[:host]}`.empty?
+    system "cobbler system remove --name=#{config[:host]}"
+  end
+
+  # make sure i'm not a rename
+  host_with_mac = `cobbler system find --mac-address #{config[:management_mac]}`
+  host_with_ip = `cobbler system find --ip-address #{config[:management_ip]}`
+  unless host_with_mac.empty?
+    STDERR.puts "ERROR: I cannot create a cobbler node for #{config[:host]} using the mac #{config[:management_mac]} because the node #{host_with_mac} already has that mac!"
+    STDERR.puts ">> check your mac address or use `cobbler system remove` to delete an existing node"
+    exit 1
+  end
+  unless host_with_ip.empty?
+     STDERR.puts "ERROR: I cannot create a cobbler node for #{config[:host]} using the IP #{config[:management_ip]} because the node #{host_with_ip} already has that IP!"
+    STDERR.puts ">> check your IP address or use `cobbler system remove` to delete an existing node"
+    exit 1
+  end
+
+  # create the cobbler node
+  system "cobbler system add --name=#{config[:host]} --profile=#{config[:profile]} --hostname=#{config[:host]}"
+  system "cobbler system edit --name=#{config[:host]} --name-servers=#{config[:name_server]}"
+  system "cobbler system edit --name=#{config[:host]} --ksmeta='system_disk=#{config[:system_disk]} data_disk=#{config[:data_disk]} ntp_server=#{config[:ntp_server]}'"
+
+  # set up its network
+  if config[:use_dhcp]
+    system "cobbler system edit --name=#{config[:host]} --interface=#{config[:management_interface]} --mac=#{config[:management_mac]} --management=1 --static-routes='#{config[:routes].join(' ')}' --ipv6-autoconfiguration=no"
+  else
+    system "cobbler system edit --name=#{config[:host]} --interface=#{config[:management_interface]} --mac=#{config[:management_mac]} --ip-address=#{config[:management_ip]} --netmask=#{config[:management_mask]} --static=1 --management=1 --static-routes='#{config[:routes].join(' ')}' --ipv6-autoconfiguration=no"
+  end
+  if config[:management_gateway]
+    system "cobbler system edit --name=#{config[:host]} --gateway=#{config[:management_gateway]}"
+  end
+
+  # delete any existing chef client
+  if system "knife client show #{config[:host]} &>/dev/null"
+    system "knife client delete -y #{config[:host]}"
+  end
+
+  # if we know the last name(s) of this server, try to fetch previous old_names
+  old_names.each do |old_name|
+    old_node = Chef::Node::load(old_name) rescue next
+    old_node_old_names = old_node[:colo][:old_names] or next
+    old_names += (old_node_old_names - old_names)
+  end
+
+  # remove any existing chef node, if desired, and create a new node
+  if delete_chef_node
+    if system "knife node show #{config[:host]} &>/dev/null"
+      system "knife node delete -y #{config[:host]}"
+    end
+    system "knife node create -yd #{config[:host]}"
+    system "knife node run_list add #{config[:host]} #{config[:roles].join(' ')}"
+  end
+
+  # add the build config and old_names list to the node
+  node = Chef::Node::load(config[:host]) or raise("Could not find a node named #{config[:host]}")
+  node.set[:colo] = {} unless node[:colo]
+  config.delete(:roles)
+  node.set[:colo][:build_conf] = config
+  node.set[:colo][:old_names] = old_names if old_names.any?
+  node.save
+end
+
+# apply the changes to cobbler
+system "cobbler-update #{cobbler_update_args}"
+
+# annnd we're done
+exit 0
+

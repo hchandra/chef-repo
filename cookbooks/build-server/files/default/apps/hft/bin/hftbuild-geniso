@@ -1,0 +1,24 @@
+#! /bin/bash
+
+#
+# Barclays GTIS-ST - this file is under Chef control
+# chef src: git/hftadmin/chef-repo/cookbooks/build-server/files/default
+#
+
+#
+# hftbuild-geniso.sh
+# utility script to cobbler-generate a bootable build iso for a host
+# src: git/hftadmin/colo-tools/build/cobbler/bin
+#
+
+HOST=$1
+
+if [ $# -ne 1 ]; then
+  echo -e "\n  usage: hftbuild-geniso <hostname>\n"
+  exit 1
+fi
+
+mkdir -p '/local/1/cobbler/iso'
+/usr/bin/cobbler buildiso --systems=$HOST --iso=/local/1/cobbler/iso/$HOST.iso
+echo -e "\n>> You can download the iso from: http://$(hostname)/cobbler/iso/$HOST.iso"
+

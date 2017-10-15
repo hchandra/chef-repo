@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Data Bags
 
 This directory contains directories of the various data bags you create for your infrastructure. Each subdirectory corresponds to a data bag on the Chef Server, and contains JSON files of the items that go in the bag.
@@ -19,6 +20,40 @@ https://docs.chef.io/data_bags.html
 # Encrypted Data Bags
 
 Encrypted data bags allow you to encrypt the contents of your data bags. The content of attributes will no longer be searchable. To use encrypted data bags, first you must have or create a secret key.
+=======
+Data Bags
+---------
+
+This directory contains directories of the various data bags you create for your infrastructure. Each subdirectory corresponds to a data bag on the Chef Server, and contains JSON files of the items that go in the bag.
+
+First, create a directory for the data bag.
+
+    mkdir data_bags/BAG
+
+Then create the JSON files for items that will go into that bag.
+
+    $EDITOR data_bags/BAG/ITEM.json
+
+The JSON for the ITEM must contain a key named "id" with a value equal to "ITEM". For example,
+
+    {
+      "id": "foo"
+    }
+
+Next, create the data bag on the Chef Server.
+
+    knife data bag create BAG
+
+Then upload the items in the data bag's directory to the Chef Server.
+
+    knife data bag from file BAG ITEM.json
+
+
+Encrypted Data Bags
+-------------------
+
+Added in Chef 0.10, encrypted data bags allow you to encrypt the contents of your data bags. The content of attributes will no longer be searchable. To use encrypted data bags, first you must have or create a secret key.
+>>>>>>> 427cb06502768cffbc724271a9bd69799ce1c07d
 
     openssl rand -base64 512 > secret_key
 
@@ -50,7 +85,10 @@ Use the secret_key to view the contents.
     id:        mysql
     password:  abc123
 
+<<<<<<< HEAD
 
 For more information on encrypted data bags, see the Chef wiki page:
 
 https://docs.chef.io/data_bags.html
+=======
+>>>>>>> 427cb06502768cffbc724271a9bd69799ce1c07d
