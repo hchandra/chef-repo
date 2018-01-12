@@ -135,7 +135,11 @@ def my_func(a):
            done_key_list.append(var)
  
            # check ret_dict if var exists or use from previous dict 
-           pv=ret_dict[var] if (ret_dict.has_key(var)) else a[var]
+           if (a.has_key(var)):
+              pv=ret_dict[var] if (ret_dict.has_key(var)) else a[var]
+           else:
+              # empty list
+              pv=[]
            ret_dict[var]=manage_list(reserved_word, pv, v)
   
         else:
