@@ -1,9 +1,9 @@
 {
-  "App1": {
+  "app1": {
         "CHANGE_TO_sysctl": {
             "CHANGE_TO_jjj": {"REPLACE_WITH_jjj1": "Change Change" },
             "REPLACE_WITH_vm.dirty_ratio": 20,
             },
-        "extends": ["CentOS_6u6", "HP_DL_360_Gen10"]
+        "extends": ["centos_6u6", "hp_dl_360_gen10"]
    }
 }

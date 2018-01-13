@@ -1,0 +1,11 @@
+{
+  "hp": {
+        "pkg_list": ["pkg1","pkg2"],
+        "grub": {
+                "intel_pstate": "diable",
+                "mce": "ignore_ce",
+                "idle": "poll",
+                "nosoftlockup": "True"
+                }
+        }
+}

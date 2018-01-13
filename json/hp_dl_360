@@ -1,0 +1,12 @@
+{
+  "hp_dl_360": {
+        "pkg_list": ["pkg_360"],
+        "test_var": "This is test from HP_DL_360",
+        "extends": ["hp_dl"],
+        "dmidecode_system": { 
+            "conrep": "This is a from 360 conrep" ,
+            "Product_Name": "ProLiant DL360",
+            "Manufacturer": "HPE"
+            }
+        }
+}

@@ -1,5 +1,5 @@
 {
-  "CentOS_6u6": {
+  "centos_6u6": {
         "ADD_TO_pkg_list": ["centOS_66_pkgs_1"],
         "EXCLUDE_FROM_pkg_list": ["pkg2"],
         "CHANGE_TO_sysctl": {
@@ -8,6 +8,6 @@
            "jjj": { "jjj1": "This is addint dict" },
            "sysctl_file_location": "/etc/sysctl.conf"
         },
-        "extends": ["CentOS"]
+        "extends": ["centos"]
    }
 }

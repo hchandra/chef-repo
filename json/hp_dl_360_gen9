@@ -1,7 +1,7 @@
 {
-  "HP_DL_360_Gen9": {
+  "hp_dl_360_gen9": {
         "pkg_list": ["pkg_360_Gen9"],
         "Gen9_var": "This is from Gen9",
-        "extends": ["HP_DL_360"]
+        "extends": ["hp_dl_360"]
         }
 }

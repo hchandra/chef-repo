@@ -1,5 +1,5 @@
 {
-  "HP_DL_360_Gen10": {
+  "hp_dl_360_gen10": {
         "ADD_TO_pkg_list": ["pkg_360_Gen10"],
         "EXCLUDE_FROM_pkg_list": ["pkg2"],
         "CHANGE_TO_bios_settings": {
@@ -10,7 +10,7 @@
         },
         "bios_version": "abc",
         "update_biod": "no",
-        "extends": ["HP_DL_360"],
+        "extends": ["hp_dl_360"],
         "CHANGE_TO_test_dict_HP":{
            "mycheck": "This is a check"
         }

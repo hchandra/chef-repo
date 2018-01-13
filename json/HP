@@ -1,9 +1,0 @@
-{
-  "HP": {
-        "pkg_list": ["pkg1","pkg2"],
-        "test_var": "This is test from HP",
-        "Gen9_var": "This is from HP",
-        "test_dict_HP": { "a": "This is a from HP" },
-        "bios_settings": { "run_list": ["step1", "step2"] }
-        }
-}

@@ -1,0 +1,6 @@
+{
+  "hp_dl_360_gen8": {
+        "pkg_list": ["pkg_360_Gen8"],
+        "extends": ["hp_dl_360"]
+        }
+}

@@ -1,0 +1,11 @@
+{
+  "hp_dl": {
+        "pkg_list": ["dl_pkg3"],
+        "REPLACE_WITH_grub": {
+           "selinux": "0",
+           "mce": "ignore_ce",
+           "ipv6.disable": "1"
+           },
+        "extends": ["hp"]
+        }
+}

@@ -167,8 +167,9 @@ def my_func(a):
            for k1,v1 in v.iteritems():
                tmp_dict[k1]=v1
 
-           for k1,v1 in a[var].iteritems():
-               tmp_dict[k1]=v1
+           if (a.has_key(var)):
+              for k1,v1 in a[var].iteritems():
+                  tmp_dict[k1]=v1
  
            ret_dict[var]=my_func(tmp_dict)
         else:                               

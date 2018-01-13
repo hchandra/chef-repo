@@ -1,5 +1,5 @@
 {
-  "OS": {
+  "os": {
         "pkg_list": ["pkg1","pkg2"],
         "sysctl": {
             "vm.drop_caches": 0,
