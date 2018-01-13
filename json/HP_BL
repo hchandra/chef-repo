@@ -1,0 +1,8 @@
+{
+  "HP_BL": {
+        "ADD_pkg_list": ["hp_bl_pkg3"],
+        "hp_bl_var": "this is hp_bl test",
+        "test_dict_HP": { "a": "This is test from BL" },
+        "extends": ["HP"]
+        }
+}

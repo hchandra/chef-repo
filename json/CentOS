@@ -1,0 +1,9 @@
+{
+  "CentOS": {
+        "ADD_TO_pkg_list": ["centOS_pkg_1"],
+        "CHANGE_TO_sysctl": {
+           "net.ipv4.conf.all.rp_filter":  1 
+        },
+        "extends": ["OS"]
+   }
+}

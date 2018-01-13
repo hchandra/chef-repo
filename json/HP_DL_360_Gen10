@@ -1,0 +1,18 @@
+{
+  "HP_DL_360_Gen10": {
+        "ADD_TO_pkg_list": ["pkg_360_Gen10"],
+        "EXCLUDE_FROM_pkg_list": ["pkg2"],
+        "CHANGE_TO_bios_settings": {
+                "conrep_file": "dl360_gen10.xml",
+                "run_command": "/bin/true",
+                "ADD_TO_run_list": ["step3"],
+                "EXCLUDE_FROM_run_list": ["step2"]
+        },
+        "bios_version": "abc",
+        "update_biod": "no",
+        "extends": ["HP_DL_360"],
+        "CHANGE_TO_test_dict_HP":{
+           "mycheck": "This is a check"
+        }
+  }
+}

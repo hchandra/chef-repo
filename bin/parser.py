@@ -25,10 +25,10 @@ class CmdLine():
       self.json_dir = '../json'
 
       # env_name: '-e' [dev, qa, uat, prod, ...] 
-      # app_name:'-a'  [ 'EQ', ... ]
-      # app_use: '-u' [ database, webserver, ...]
-      # hw_name: '-m' [ HP_DL_360_Gen9, HP_DL_360_Gen10, ...]
-      # dc_name: '-l' [ RFP, SEC, LND, ....]
+      # app_name:'-a'  [ 'eq', ... ]
+      # app_use: '-u' [ centos_6u6, rh_7.2, ...]
+      # hw_name: '-m' [ hp_dl_360_gen9, hp_dl_360_gen10, ...]
+      # dc_name: '-l' [ rfp, sec, lnd, ....]
       # host_name: '-n' 
 
       self.env_name = ''
@@ -60,6 +60,11 @@ class CmdLine():
    def parseCmdLine(self, cmdLine):
        parser = argparse.ArgumentParser(description="parse josn files")
        parser.add_argument('-m', action="store", dest="model")
+       parser.add_argument('-n', action="store", dest="host_name")
+       parser.add_argument('-u', action="store", dest="unix_os")
+       parser.add_argument('-l', action="store", dest="location")
+       parser.add_argument('-a', action="store", dest="app_name")
+       parser.add_argument('-e', action="store", dest="env_name")
        parser.add_argument('-r', action='store_true', dest="run" )
        parser.add_argument('command', nargs='*', action="store")
 

@@ -1,0 +1,8 @@
+{
+  "HP_DL_360": {
+        "pkg_list": ["pkg_360"],
+        "test_var": "This is test from HP_DL_360",
+        "extends": ["HP_DL"],
+        "test_dict_HP": { "conrep": "This is a from 360 conrep" }
+        }
+}

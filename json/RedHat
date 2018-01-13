@@ -1,0 +1,9 @@
+{
+  "RedHat": {
+        "ADD_pkg_list": ["redhat_pkg_1"],
+        "REPLACE_WITH_sysctl": {
+           "net.ipv4.conf.all.rp_filter":  2 
+        }
+        "extends": ["OS"]
+   }
+}
