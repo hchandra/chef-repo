@@ -4,6 +4,10 @@
             "CHANGE_TO_jjj": {"REPLACE_WITH_jjj1": "Change Change" },
             "REPLACE_WITH_vm.dirty_ratio": 20,
             },
+        "local_users": [ 
+               { "name": "hiren", "home_dir": "/export/home" },
+               { "name": "arh", "home_dir": "/export/home" }
+        ],
         "extends": ["centos_6u6", "hp_dl_360_gen10"]
    }
 }

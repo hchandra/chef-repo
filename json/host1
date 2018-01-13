@@ -1,0 +1,12 @@
+{
+  "host1": {
+     "host1_var": "This is host specific variable",
+     "ADD_TO_local_users": [ 
+         {"home_dir": "/export/opt", "name": "vc_hiren"}
+         ],
+     "extends": ["hp_dl_360_gen10",
+                 "centos_6u6",
+                 "app1"
+                ]
+  }
+}
