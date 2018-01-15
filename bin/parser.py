@@ -11,6 +11,7 @@ import argparse
 import sys
 import os
 import errno
+import re
 
 class dryRun(Exception): pass
 
@@ -109,7 +110,7 @@ class CmdLine():
 #
 def manage_list(r, v, nv):
   if (r in ['ADD_TO']):
-     v.extend(nv)
+     v.extend([x for x in nv if not any(re.search(y, x) for y in v)])
   
   if (r in ['EXCLUDE_FROM']):
      v=reduce(lambda x,y : filter(lambda z: z!=y,x),nv,v)
@@ -140,11 +141,13 @@ def my_func(a):
            done_key_list.append(var)
  
            # check ret_dict if var exists or use from previous dict 
+
+           # empty list
+           pv=[]
+
            if (a.has_key(var)):
               pv=ret_dict[var] if (ret_dict.has_key(var)) else a[var]
-           else:
-              # empty list
-              pv=[]
+
            ret_dict[var]=manage_list(reserved_word, pv, v)
   
         else:

@@ -1,6 +1,8 @@
 {
   "host1": {
      "host1_var": "This is host specific variable",
+     "rpm_list": ["test_rpm"],
+     "ADD_TO_pkg_list": ["test_rpm"],
      "ADD_TO_local_users": [ 
          {"home_dir": "/export/opt", "name": "vc_hiren"}
          ],
