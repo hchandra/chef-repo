@@ -1,0 +1,5 @@
+{
+  "test_os": {
+        "ADD_TO_pkg_list": ["test_os_pkg1","test_os_pkg2"]
+   }
+}

@@ -1,6 +1,6 @@
 {
   "hp_dl_360": {
-        "pkg_list": ["pkg_360"],
+        "ADD_TO_pkg_list": ["pkg_360"],
         "test_var": "This is test from HP_DL_360",
         "extends": ["hp_dl"],
         "dmidecode_system": { 

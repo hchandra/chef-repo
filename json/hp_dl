@@ -1,6 +1,6 @@
 {
   "hp_dl": {
-        "pkg_list": ["dl_pkg3"],
+        "ADD_TO_pkg_list": ["dl_pkg3"],
         "REPLACE_WITH_grub": {
            "selinux": "0",
            "mce": "ignore_ce",

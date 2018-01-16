@@ -7,7 +7,6 @@
         "local_users": [ 
                { "name": "hiren", "home_dir": "/export/home" },
                { "name": "arh", "home_dir": "/export/home" }
-        ],
-        "extends": ["centos_6u6", "hp_dl_360_gen10"]
+        ]
    }
 }

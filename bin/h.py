@@ -54,8 +54,9 @@ class CmdLine():
       #print(self.main_config)
 
       # parse JSON
-      self.parseJSON(self.main_config[self.configKey])
-      print('%s %s' % ('Applying', self.configFile))
+      self.xyz(self.configKey, self.main_config)
+      #self.parseJSON(self.main_config[self.configKey])
+      #print('%s %s' % ('Applying', self.configFile))
 
 
    def parseCmdLine(self, cmdLine):
@@ -95,33 +96,65 @@ class CmdLine():
                   msg = 'Error parsing %s:\n %s' % (config_filename, exc)
                   raise ConfigParseError(msg, config_filename, exc)
 
-   def parseJSON(self, k):
-       if not k.has_key('extends'):
-           self.c.update(k)
-           return
+   def xyz(self, k, d):
+       tmp={}
+       hc_tmp={}
+       hc_tmp1={}
+       tmp[k]=d[k]
+       if d[k].has_key('extends'):
+          extend_keys=d[k].pop('extends')
+          print(extend_keys)
+          for ek in extend_keys:
+             print('Before')
+             pprint.pprint(hc_tmp)
+             print('Before-End')
+             tmp[ek]=self.parseJSON(ek, m=hc_tmp)
+             hc_tmp.update(tmp[ek])
+             print(ek)
+             hc_tmp1=my_func(hc_tmp)
+             print('uuuu')
+             pprint.pprint(hc_tmp)
+             print('uuuu-End')
+             pprint.pprint(hc_tmp1)
+             print('ffff')
+             hc_tmp=hc_tmp1
+             print(hc_tmp['pkg_list'])
+             #d.update( my_func(self.parseJSON(ek, m={})))
+             
+       #pprint.pprint(tmp)
+       print('gggg')
+       hc_tmp.update(d[k])
+       pprint.pprint(my_func(hc_tmp))
+       #pprint.pprint(my_func(d))
+       return(d)
+       
+   def parseJSON(self, k, m):
+       d = self.read_config(self.json_dir +'/'+ k )[k]
+       #print('sss')
+       #pprint.pprint(d)
+       #print('sss-End')
 
-       for j in k.pop('extends'):
-           print(j)
-           m = self.read_config(self.json_dir +'/'+ j )[j]
-           self.parseJSON(m)
+       if not d.has_key('extends'):
+           m.update( my_func(d))
+           return(m)
+
+       for j in d.pop('extends'):
+           m.update( my_func( self.parseJSON(j,d) ) )
            print( 'Applying ' + self.json_dir +'/'+ j )
-           print(k)
-           pprint.pprint(self.c)
-           print('k-End')
-           self.c.update(k)
-           tmp_dict=my_func(self.c) 
-           pprint.pprint(tmp_dict)
-           print('k-End-1')
-           self.c=tmp_dict
+
+           #tmp_dict=my_func(self.c)
+           #self.c.update(tmp_dict)
+
+       return(m)
+
 #
-def manage_list(v, nv, r="ADD_TO"):
+def manage_list(v, nv, r):
+  #print('called from manage_list: %s' % r)
+  #print(v)
+  #print(nv)
+  #print('called from manage_list - End')
   if (r in ['ADD_TO']):
      try:
-        print('aaaa')
-        print(v)
-        print([x for x in nv if any(re.search(y, x) for y in v)])
-        print(nv)
-        print('bbbb')
         #v.extend([x for x in nv if not any(re.search(y, x) for y in v)])
         v.extend(nv)
      except TypeError as exc:
@@ -152,29 +185,27 @@ def my_func(a):
         var=k
  
      if (isinstance(v, list)):
-        #if (reserved_word in ['ADD_TO', 'EXCLUDE_FROM']):
-           done_key_list.append('%s%s%s' % (reserved_word, '_' if reserved_word else '', var))
-           print('%s: %s' % ('Done List', ', '.join(done_key_list)))
+        if (reserved_word in ['ADD_TO', 'EXCLUDE_FROM']):
+           done_key_list.append('%s' % (var))
  
            # check ret_dict if var exists or use from previous dict 
 
            # empty list
            pv=[]
 
-           pprint.pprint(ret_dict)
-           pprint.pprint(a)
-           print(var)
            if (a.has_key(var)):
               pv=ret_dict[var] if (ret_dict.has_key(var)) else a[var]
-           pprint.pprint(pv)
-           pprint.pprint(v)
-           print(reserved_word)
 
            ret_dict[var]=manage_list(pv, v, reserved_word)
   
-        #else:
-           #if (var not in done_key_list):
-              #ret_dict[var]=v
+        else:
+           print('PPPP')
+           pprint.pprint(a[var])
+           print(done_key_list)
+           pprint.pprint(v)
+           print('PPPP-End')
+           if (var not in done_key_list):
+              ret_dict[var]=v
  
      if (not isinstance(v, list) and not isinstance(v, dict)):
         if (reserved_word in ['REPLACE_WITH']):

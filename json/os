@@ -1,6 +1,6 @@
 {
   "os": {
-        "pkg_list": ["pkg1","pkg2"],
+        "ADD_TO_pkg_list": ["pkg1","pkg2"],
         "sysctl": {
             "vm.drop_caches": 0,
             "vm.dirty_ratio": 30

@@ -1,0 +1,8 @@
+{
+  "test1": {
+     "ADD_TO_pkg_list": ["test1_pkg3"],
+     "extends": ["os",
+                 "test_os"
+                ]
+  }
+}
